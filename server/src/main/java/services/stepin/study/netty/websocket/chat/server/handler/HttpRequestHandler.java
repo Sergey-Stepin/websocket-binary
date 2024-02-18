@@ -6,29 +6,14 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedNioFile;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.net.URISyntaxException;
-import java.net.URL;
 
 public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
-    private final String wsUri;
-    private static final File INDEX;
 
-    static {
-        URL location = HttpRequestHandler.class
-                .getProtectionDomain()
-                .getCodeSource().getLocation();
-        try {
-            String path = location.toURI() + "/home/stepin/_project/Study/NIO/examples/NettyWebSocketChat/server/src/main/resources/index.html";
-            path = !path.contains("file:") ? path : path.substring(5);
-            //INDEX = new File(path);
-            INDEX = new File("/home/stepin/_project/Study/NIO/examples/NettyWebSocketChat/server/src/main/resources/index.html");
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException(
-                    "Unable to locate index.html", e);
-        }
-    }
+    private static final File INDEX_FILE = new File("index.html");
+    private final String wsUri;
 
     public HttpRequestHandler(String wsUri) {
         this.wsUri = wsUri;
@@ -67,7 +52,7 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
 
         boolean isToKeepAlive = HttpHeaders.isKeepAlive(request);
 
-        RandomAccessFile file = new RandomAccessFile(INDEX, "r");
+        RandomAccessFile file = getIndexFile();
 
         response.headers().set(
                 HttpHeaders.Names.CONTENT_TYPE,
@@ -94,6 +79,11 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
                 HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE);
 
         ctx.writeAndFlush(response);
+    }
+
+    private RandomAccessFile getIndexFile() throws FileNotFoundException {
+
+        return new RandomAccessFile(INDEX_FILE, "r");
     }
 
     private DefaultFileRegion createDefaultFileRegion(RandomAccessFile file) throws IOException {
