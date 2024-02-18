@@ -11,11 +11,11 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import services.stepin.study.netty.websocket.chat.server.handler.HttpRequestHandler;
 import services.stepin.study.netty.websocket.chat.server.handler.TextWebSocketFrameHandler;
 
-public class ChatServerInitializer extends ChannelInitializer<Channel> {
+public class ServerInitializer extends ChannelInitializer<Channel> {
 
     private final ChannelGroup group;
 
-    public ChatServerInitializer(ChannelGroup group) {
+    public ServerInitializer(ChannelGroup group) {
         this.group = group;
     }
 

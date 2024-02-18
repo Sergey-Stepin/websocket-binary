@@ -6,15 +6,11 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedNioFile;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-/**
- * Listing 12.1 HTTPRequestHandler
- *
- * @author <a href="mailto:norman.maurer@gmail.com">Norman Maurer</a>
- */
 public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private final String wsUri;
     private static final File INDEX;
@@ -41,54 +37,83 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
     @Override
     public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
 
-        if (wsUri.equalsIgnoreCase(request.getUri())) {
+        if (wsUri.equalsIgnoreCase(request.uri()))
+            processWsRequest(ctx, request);
+        else
+            processHttpRequest(ctx, request);
 
-            System.out.println(" WS-request");
-            ctx.fireChannelRead(request.retain());
+    }
 
-        } else {
+    private void processWsRequest(ChannelHandlerContext ctx, FullHttpRequest request) {
+        System.out.println(" WS-request");
+        ctx.fireChannelRead(request.retain());
+    }
 
-            System.out.println(" Http-request");
-            if (HttpHeaders.is100ContinueExpected(request)) {
-                send100Continue(ctx);
-            }
-            RandomAccessFile file = new RandomAccessFile(INDEX, "r");
-            HttpResponse response = new DefaultHttpResponse(
-                    request.getProtocolVersion(), HttpResponseStatus.OK);
-            response.headers().set(
-                    HttpHeaders.Names.CONTENT_TYPE,
-                    "text/html; charset=UTF-8");
-            boolean keepAlive = HttpHeaders.isKeepAlive(request);
-            if (keepAlive) {
-                response.headers().set(
-                        HttpHeaders.Names.CONTENT_LENGTH, file.length());
-                response.headers().set(HttpHeaders.Names.CONNECTION,
-                        HttpHeaders.Values.KEEP_ALIVE);
-            }
-            ctx.write(response);
-            if (ctx.pipeline().get(SslHandler.class) == null) {
-                ctx.write(new DefaultFileRegion(
-                        file.getChannel(), 0, file.length()));
-            } else {
-                ctx.write(new ChunkedNioFile(file.getChannel()));
-            }
-            ChannelFuture future = ctx.writeAndFlush(
-                    LastHttpContent.EMPTY_LAST_CONTENT);
-            if (!keepAlive) {
-                future.addListener(ChannelFutureListener.CLOSE);
-            }
+    private void processHttpRequest(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
+
+        System.out.println(" Http-request");
+        if (HttpHeaders.is100ContinueExpected(request)) {
+            send100Continue(ctx);
         }
+
+        sendIndexPage(ctx, request);
+    }
+
+    private void sendIndexPage(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
+
+        HttpResponse response = new DefaultHttpResponse(
+                request.protocolVersion(),
+                HttpResponseStatus.OK);
+
+        boolean isToKeepAlive = HttpHeaders.isKeepAlive(request);
+
+        RandomAccessFile file = new RandomAccessFile(INDEX, "r");
+
+        response.headers().set(
+                HttpHeaders.Names.CONTENT_TYPE,
+                "text/html; charset=UTF-8");
+
+        if (isToKeepAlive)
+            setKeepAliveHeaders(response, file.length());
+
+        ctx.write(response);
+
+        if (ctx.pipeline().get(SslHandler.class) == null)
+            ctx.write(createDefaultFileRegion(file));
+        else
+            ctx.write(new ChunkedNioFile(file.getChannel()));
+
+        ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+        if (!isToKeepAlive)
+            future.addListener(ChannelFutureListener.CLOSE);
     }
 
     private static void send100Continue(ChannelHandlerContext ctx) {
+
         FullHttpResponse response = new DefaultFullHttpResponse(
                 HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE);
+
         ctx.writeAndFlush(response);
     }
 
+    private DefaultFileRegion createDefaultFileRegion(RandomAccessFile file) throws IOException {
+        return new DefaultFileRegion(
+                file.getChannel(),
+                0,
+                file.length());
+    }
+
+    private void setKeepAliveHeaders(HttpResponse response, long length){
+
+        response.headers().set(
+                HttpHeaders.Names.CONTENT_LENGTH, length);
+
+        response.headers().set(HttpHeaders.Names.CONNECTION,
+                HttpHeaders.Values.KEEP_ALIVE);
+    }
+
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
-            throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         cause.printStackTrace();
         ctx.close();
     }

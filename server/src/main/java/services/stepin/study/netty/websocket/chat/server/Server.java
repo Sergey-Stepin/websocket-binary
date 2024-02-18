@@ -49,6 +49,6 @@ public class Server {
     }
 
     private ChannelInitializer<Channel> createInitializer(ChannelGroup channelGroup) {
-            return new ChatServerInitializer(channelGroup);
+            return new ServerInitializer(channelGroup);
     }
 }

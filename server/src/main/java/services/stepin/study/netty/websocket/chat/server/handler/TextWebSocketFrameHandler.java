@@ -16,7 +16,7 @@ public class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextW
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
-        System.out.println("received something");
+        System.out.println("Server received: " + msg.text());
         group.writeAndFlush(msg.retain());
     }
 
@@ -26,6 +26,8 @@ public class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextW
         System.out.println("process event");
 
         if (evt == WebSocketServerProtocolHandler.ServerHandshakeStateEvent.HANDSHAKE_COMPLETE) {
+
+            System.out.println("Handshake is complete");
 
             ctx.pipeline().remove(HttpRequestHandler.class);
 
