@@ -9,7 +9,7 @@ import static io.netty.handler.codec.http.websocketx.WebSocketClientProtocolHand
 
 public class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
     @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt){
 
         if (evt instanceof WebSocketClientProtocolHandler.ClientHandshakeStateEvent handshakeStateEvent)
             processHandshakeStateEvent(ctx, handshakeStateEvent);
@@ -26,7 +26,7 @@ public class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextW
     }
 
     @Override
-    protected void channelRead0(final ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
+    protected void channelRead0(final ChannelHandlerContext ctx, TextWebSocketFrame msg){
         System.out.println("Client received message=" + msg.text());
     }
 

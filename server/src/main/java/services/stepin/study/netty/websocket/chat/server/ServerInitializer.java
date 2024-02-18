@@ -20,7 +20,7 @@ public class ServerInitializer extends ChannelInitializer<Channel> {
     }
 
     @Override
-    protected void initChannel(Channel ch) throws Exception {
+    protected void initChannel(Channel ch){
 
         ChannelPipeline pipeline = ch.pipeline();
 
