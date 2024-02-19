@@ -5,17 +5,12 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.util.concurrent.ImmediateEventExecutor;
 
 import java.net.InetSocketAddress;
 
 public class Server {
-
-    private final ChannelGroup channelGroup = new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
     private final EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
     private Channel channel;
     private final int port;
@@ -30,7 +25,7 @@ public class Server {
 
         bootstrap.group(eventLoopGroup)
                 .channel(NioServerSocketChannel.class)
-                .childHandler(createInitializer(channelGroup));
+                .childHandler(createInitializer());
 
         ChannelFuture future = bootstrap.bind(new InetSocketAddress(port));
         future.syncUninterruptibly();
@@ -44,11 +39,10 @@ public class Server {
         if (channel != null) {
             channel.close();
         }
-        channelGroup.close();
         eventLoopGroup.shutdownGracefully();
     }
 
-    private ChannelInitializer<Channel> createInitializer(ChannelGroup channelGroup) {
-            return new ServerInitializer(channelGroup);
+    private ChannelInitializer<Channel> createInitializer() {
+            return new ServerInitializer();
     }
 }

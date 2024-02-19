@@ -9,7 +9,7 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker13;
 import io.netty.handler.codec.http.websocketx.WebSocketClientProtocolHandler;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
-import services.stepin.study.netty.websocket.chat.client.handler.TextWebSocketFrameHandler;
+import services.stepin.study.netty.websocket.chat.client.handler.CalculatorClientFrameHandler;
 
 import java.net.URI;
 
@@ -32,7 +32,8 @@ public class ClientInitializer extends ChannelInitializer<Channel> {
                 WebSocketVersion.V13, "", false, new DefaultHttpHeaders(false), 64_000);
         pipeline.addLast(new WebSocketClientProtocolHandler(wsHandshaker));
 
-        pipeline.addLast(new TextWebSocketFrameHandler());
+        //pipeline.addLast(new TextWebSocketFrameHandler());
+        pipeline.addLast(new CalculatorClientFrameHandler());
     }
 
 }
