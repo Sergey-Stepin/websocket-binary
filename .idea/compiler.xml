@@ -2,6 +2,9 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel target="17">
+      <module name="websocket-calculator.server" target="18" />
+      <module name="websocket-calculator.server.main" target="18" />
+      <module name="websocket-calculator.server.test" target="18" />
       <module name="websocket-chat.server" target="18" />
       <module name="websocket-chat.server.main" target="18" />
       <module name="websocket-chat.server.test" target="18" />
